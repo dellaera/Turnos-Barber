@@ -30,12 +30,13 @@
                     <label for="fecha" style="margin-top:1rem;">Fecha</label>
                     <input type="date" id="fecha" name="fecha" required min="{{ now()->toDateString() }}">
 
-                    <button type="submit" class="btn btn-primary" style="margin-top:1rem; width:100%;">
+                    <button type="submit" class="btn btn-primary" id="btn-disponibilidad" style="margin-top:1rem; width:100%;">
                         Consultar disponibilidad
                     </button>
                 </form>
 
                 <div id="disponibilidad" style="margin-top:1.5rem;"></div>
+                <p id="disponibilidad-error" style="color:#dc2626; font-weight:600;"></p>
             </div>
 
             <div>
@@ -58,7 +59,7 @@
                     <label style="margin-top:1rem;" for="cliente_email">Email (opcional)</label>
                     <input type="email" id="cliente_email" name="cliente[email]">
 
-                    <button type="submit" class="btn btn-primary" style="margin-top:1.5rem; width:100%;">
+                    <button type="submit" class="btn btn-primary" id="btn-reservar" style="margin-top:1.5rem; width:100%;">
                         Reservar turno
                     </button>
                 </form>
@@ -72,27 +73,51 @@
 <script>
 const formDisponibilidad = document.getElementById('form-disponibilidad');
 const disponibilidadBox = document.getElementById('disponibilidad');
+const disponibilidadError = document.getElementById('disponibilidad-error');
 const horaSelect = document.getElementById('hora');
 const mensaje = document.getElementById('mensaje');
 const turnoServicio = document.getElementById('turno_servicio_id');
 const turnoBarbero = document.getElementById('turno_barbero_id');
 const turnoFecha = document.getElementById('turno_fecha');
+const btnDisponibilidad = document.getElementById('btn-disponibilidad');
+const btnReservar = document.getElementById('btn-reservar');
+
+const setMensaje = (texto, tipo = 'info', target = mensaje) => {
+    if (!target) return;
+    const colores = {
+        info: '#0ea5e9',
+        error: '#dc2626',
+        success: '#16a34a',
+    };
+    target.style.color = colores[tipo] ?? '#0f172a';
+    target.textContent = texto;
+};
 
 formDisponibilidad?.addEventListener('submit', async (e) => {
     e.preventDefault();
     disponibilidadBox.innerHTML = 'Buscando horarios disponibles…';
+    disponibilidadError.textContent = '';
     mensaje.textContent = '';
+    btnDisponibilidad.disabled = true;
 
     const params = new URLSearchParams(new FormData(formDisponibilidad));
     const url = '{{ route('turnos.disponibilidad', $barberia) }}' + '?' + params.toString();
+    let data;
 
-    const response = await fetch(url);
-    if (!response.ok) {
-        disponibilidadBox.innerHTML = 'No pudimos obtener disponibilidad. Revisá los datos.';
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('No pudimos obtener disponibilidad.');
+        }
+        data = await response.json();
+    } catch (error) {
+        disponibilidadBox.innerHTML = '';
+        setMensaje(error.message, 'error', disponibilidadError);
+        horaSelect.innerHTML = '<option value="" disabled selected>Sin horarios</option>';
+        btnDisponibilidad.disabled = false;
         return;
     }
 
-    const data = await response.json();
     turnoServicio.value = data.servicio.id;
     turnoBarbero.value = data.barbero.id;
     turnoFecha.value = data.fecha;
@@ -100,6 +125,7 @@ formDisponibilidad?.addEventListener('submit', async (e) => {
     if (!data.disponibles.length) {
         disponibilidadBox.innerHTML = 'No hay turnos disponibles para esa fecha.';
         horaSelect.innerHTML = '<option value="" disabled selected>Sin horarios</option>';
+        btnDisponibilidad.disabled = false;
         return;
     }
 
@@ -111,33 +137,40 @@ formDisponibilidad?.addEventListener('submit', async (e) => {
         option.textContent = h;
         horaSelect.appendChild(option);
     });
+    btnDisponibilidad.disabled = false;
 });
 
 const formTurno = document.getElementById('form-turno');
 formTurno?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    mensaje.textContent = 'Reservando turno…';
+    setMensaje('Reservando turno…', 'info');
+    btnReservar.disabled = true;
 
     const body = new FormData(formTurno);
-    const response = await fetch('{{ route('turnos.reservar', $barberia) }}', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-        },
-        body,
-    });
+    try {
+        const response = await fetch('{{ route('turnos.reservar', $barberia) }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            },
+            body,
+        });
 
-    const data = await response.json();
-    if (!response.ok) {
-        mensaje.style.color = '#dc2626';
-        mensaje.textContent = data.message ?? 'No pudimos reservar el turno.';
-        return;
+        const data = await response.json();
+        if (!response.ok) {
+            const errors = data.errors ? Object.values(data.errors).flat().join(' ') : data.message;
+            throw new Error(errors || 'No pudimos reservar el turno.');
+        }
+
+        setMensaje('¡Turno reservado correctamente!', 'success');
+        formTurno.reset();
+        horaSelect.innerHTML = '<option value="" disabled selected>Primero consultá la disponibilidad</option>';
+        disponibilidadBox.innerHTML = '';
+    } catch (error) {
+        setMensaje(error.message, 'error');
+    } finally {
+        btnReservar.disabled = false;
     }
-
-    mensaje.style.color = '#16a34a';
-    mensaje.textContent = '¡Turno reservado correctamente!';
-    formTurno.reset();
-    horaSelect.innerHTML = '<option value="" disabled selected>Primero consultá la disponibilidad</option>';
 });
 </script>
 @endpush
