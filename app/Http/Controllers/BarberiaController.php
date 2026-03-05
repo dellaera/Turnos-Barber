@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Barberia;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -12,16 +13,45 @@ class BarberiaController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $barberia = $user?->barberia()->with(['barberos' => fn ($q) => $q->latest(), 'servicios' => fn ($q) => $q->latest()])->first();
+        $barberia = $user?->barberiaActiva();
+        if ($barberia) {
+            $barberia->load(['barberos' => fn ($q) => $q->latest(), 'servicios' => fn ($q) => $q->latest()]);
+            $barberia->loadCount(['barberos', 'servicios']);
+        }
 
-        $barberias = $barberia ? collect([$barberia->loadCount(['barberos', 'servicios'])]) : Barberia::withCount(['barberos', 'servicios'])->latest()->get();
+        $barberias = $user?->esAdmin()
+            ? Barberia::withCount(['barberos', 'servicios'])->latest()->get()
+            : collect();
         $barberos = $barberia?->barberos ?? collect();
         $servicios = $barberia?->servicios ?? collect();
         $turnos = $barberia
             ? $barberia->turnos()->with(['cliente', 'servicio', 'barbero'])->latest()->take(5)->get()
             : collect();
 
-        return view('dashboard', compact('barberias', 'barberia', 'barberos', 'servicios', 'turnos'));
+        $metrics = [
+            'turnos_semana' => 0,
+            'turnos_hoy' => 0,
+            'clientes_unicos' => 0,
+            'barberos_activos' => 0,
+        ];
+        $proximoTurno = null;
+
+        if ($barberia) {
+            $inicioSemana = Carbon::now()->startOfWeek();
+            $finSemana = Carbon::now()->endOfWeek();
+            $metrics['turnos_semana'] = $barberia->turnos()->whereBetween('fecha', [$inicioSemana, $finSemana])->count();
+            $metrics['turnos_hoy'] = $barberia->turnos()->whereDate('fecha', Carbon::today())->count();
+            $metrics['clientes_unicos'] = $barberia->turnos()->distinct('cliente_id')->count('cliente_id');
+            $metrics['barberos_activos'] = $barberia->barberos()->where('activo', true)->count();
+            $proximoTurno = $barberia->turnos()
+                ->with(['cliente', 'servicio'])
+                ->whereDate('fecha', '>=', Carbon::today())
+                ->orderBy('fecha')
+                ->orderBy('hora')
+                ->first();
+        }
+
+        return view('dashboard', compact('barberias', 'barberia', 'barberos', 'servicios', 'turnos', 'metrics', 'proximoTurno'));
     }
 
     public function update(Request $request)

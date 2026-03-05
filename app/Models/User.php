@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'rol',
     ];
 
     /**
@@ -46,5 +47,21 @@ class User extends Authenticatable
     public function barberia()
     {
         return $this->hasOne(Barberia::class, 'usuario_id');
+    }
+
+    public function esAdmin(): bool
+    {
+        return $this->rol === 'admin';
+    }
+
+    public function barberiaActiva(): ?Barberia
+    {
+        if ($this->esAdmin()) {
+            $barberiaId = session('barberia_admin_id');
+
+            return $barberiaId ? Barberia::find($barberiaId) : null;
+        }
+
+        return $this->barberia;
     }
 }

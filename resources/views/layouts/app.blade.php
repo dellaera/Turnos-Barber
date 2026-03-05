@@ -21,9 +21,36 @@
             color: #fff;
             padding: 1rem 2rem;
         }
+        header .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
         header h1 {
             margin: 0;
             font-size: 1.25rem;
+        }
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        nav a {
+            color: #e2e8f0;
+            font-weight: 600;
+        }
+        nav form {
+            margin: 0;
+        }
+        nav button {
+            background: transparent;
+            border: 1px solid rgba(226, 232, 240, 0.4);
+            border-radius: 999px;
+            color: #e2e8f0;
+            padding: 0.4rem 1rem;
+            cursor: pointer;
         }
         main {
             max-width: 960px;
@@ -35,6 +62,80 @@
             border-radius: 1rem;
             padding: 1.5rem;
             box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+        }
+        .page-hero {
+            background: linear-gradient(120deg, #0f172a, #1e293b);
+            color: #e2e8f0;
+            border-radius: 1.25rem;
+            padding: 2rem 2.5rem;
+            box-shadow: 0 20px 35px rgba(15, 23, 42, 0.4);
+            margin-bottom: 2rem;
+        }
+        .page-hero h2 {
+            margin: 0.25rem 0 0;
+            font-size: 2rem;
+        }
+        .page-hero .hero-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.15);
+            color: #e2e8f0;
+            font-size: 0.9rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 1rem;
+        }
+        .stat-card {
+            background: #0f172a;
+            color: #e2e8f0;
+            border-radius: 1rem;
+            padding: 1.25rem;
+        }
+        .stat-card span {
+            display: block;
+            font-size: 0.9rem;
+            color: #cbd5f5;
+        }
+        .stat-card strong {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        .timeline {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .timeline li {
+            display: flex;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+        }
+        .timeline li::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #2563eb;
+            margin-top: 0.4rem;
         }
         a {
             color: #2563eb;
@@ -103,7 +204,22 @@
 </head>
 <body>
     <header>
-        <h1>Turnos Barber</h1>
+        <div class="top-bar">
+            <h1>Turnos Barber</h1>
+            <nav>
+                <a href="{{ route('dashboard') }}">Dashboard</a>
+                @auth
+                    <a href="{{ route('turnos.index') }}">Turnos</a>
+                    @if(Auth::user()->barberia)
+                        <a href="{{ route('barberias.show', Auth::user()->barberia) }}" target="_blank">Vista pública</a>
+                    @endif
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit">Cerrar sesión</button>
+                    </form>
+                @endauth
+            </nav>
+        </div>
     </header>
     <main>
         @if (session('status'))

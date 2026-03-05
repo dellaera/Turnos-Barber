@@ -10,33 +10,82 @@
                 : asset($barberia->logo_url))
             : null;
     @endphp
-    <section class="card" style="border-top:6px solid {{ $colorPrimario }};">
-        <a href="{{ route('dashboard') }}" style="color:#64748b; font-size:0.9rem">← Volver al dashboard</a>
 
-        <div style="display:flex; flex-wrap:wrap; gap:1rem; align-items:center; margin:1rem 0 0;">
-            @if($logoUrl)
-                <img src="{{ $logoUrl }}" alt="Logo {{ $barberia->nombre }}" style="height:72px; object-fit:contain;">
-            @endif
-            <div>
-                <h2 style="margin:0; color:{{ $colorPrimario }};">{{ $barberia->nombre }}</h2>
-                <p style="margin:0.2rem 0 0; color:#475569;">{{ $barberia->direccion }} · Tel: {{ $barberia->telefono }}</p>
+    <section class="page-hero" style="background:linear-gradient(120deg, {{ $colorPrimario }}, {{ $colorSecundario }});">
+        <div style="display:flex; flex-wrap:wrap; gap:2rem; align-items:center;">
+            <div style="display:flex; gap:1rem; align-items:center;">
+                @if($logoUrl)
+                    <img src="{{ $logoUrl }}" alt="Logo {{ $barberia->nombre }}" style="height:96px; width:96px; border-radius:1.5rem; object-fit:cover; background:#fff; padding:0.6rem;">
+                @endif
+                <div>
+                    <h2 style="margin:0; font-size:2.4rem;">{{ $barberia->nombre }}</h2>
+                    <p style="margin:0.4rem 0; color:#e2e8f0; font-size:1.05rem;">{{ $barberia->direccion }} · Tel: <a href="tel:{{ preg_replace('/[^\d+]/', '', $barberia->telefono) }}" style="color:#bae6fd;">{{ $barberia->telefono }}</a></p>
+                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                        <span class="badge" style="background:rgba(255,255,255,0.15);">Turnos online 24/7</span>
+                        <span class="badge" style="background:rgba(255,255,255,0.15);">Equipo certificado</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-actions">
+                <a class="btn btn-primary" href="#reservar" style="background:#fff; color:{{ $colorPrimario }};">Reservar turno</a>
+                <a class="btn" style="background:rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.35);" href="https://wa.me/{{ preg_replace('/[^\d]/', '', $barberia->telefono) }}" target="_blank">Contactar por WhatsApp</a>
             </div>
         </div>
-
         @if($barberia->mensaje_bienvenida)
-            <div style="background:{{ $colorSecundario }}15; border-radius:1rem; padding:1rem 1.25rem; margin-top:1.25rem; color:{{ $colorPrimario }};">
-                {{ $barberia->mensaje_bienvenida }}
-            </div>
+            <p style="margin-top:1.5rem; font-size:1.1rem; max-width:640px;">{{ $barberia->mensaje_bienvenida }}</p>
         @endif
-
         @if($barberia->informacion_contacto)
-            <div style="margin-top:1rem; color:#475569;">
-                <strong>Información adicional:</strong><br>
-                {!! nl2br(e($barberia->informacion_contacto)) !!}
-            </div>
+            <p style="margin:0; opacity:0.9;">{!! nl2br(e($barberia->informacion_contacto)) !!}</p>
         @endif
+    </section>
 
-        <div class="grid grid-2" style="margin-top:2rem;">
+    <section class="card" style="margin-bottom:2rem;">
+        <div class="section-heading">
+            <div>
+                <h2 style="margin:0;">Servicios destacados</h2>
+                <p style="color:#475569; margin:0;">Elegí el que mejor se adapte a vos.</p>
+            </div>
+        </div>
+        <div class="grid grid-2">
+            @foreach($barberia->servicios as $servicio)
+                <article style="border:1px solid #e2e8f0; border-radius:1rem; padding:1.25rem;">
+                    <h3 style="margin:0;">{{ $servicio->nombre }}</h3>
+                    <p style="color:#64748b; margin:0.25rem 0;">Duración: {{ $servicio->duracion_minutos }} min</p>
+                    @if($servicio->precio)
+                        <p style="margin:0; font-weight:600; color:{{ $colorPrimario }};">${{ number_format($servicio->precio, 0, ',', '.') }}</p>
+                    @endif
+                </article>
+            @endforeach
+        </div>
+    </section>
+
+    <section class="card" style="margin-bottom:2rem;">
+        <div class="section-heading">
+            <div>
+                <h2 style="margin:0;">¿Cómo funciona?</h2>
+                <p style="color:#475569; margin:0;">Reservar es súper simple.</p>
+            </div>
+        </div>
+        <div class="grid grid-2" style="gap:1.5rem;">
+            <article style="background:#eff6ff; border-radius:1rem; padding:1.25rem;">
+                <h3 style="margin-top:0;">1. Elegí servicio y barbero</h3>
+                <p style="color:#475569;">Seleccioná el servicio y a tu barbero favorito. El sistema te muestra su agenda real.</p>
+            </article>
+            <article style="background:#ecfccb; border-radius:1rem; padding:1.25rem;">
+                <h3 style="margin-top:0;">2. Confirmá la reserva</h3>
+                <p style="color:#475569;">Completá tus datos y recibí la confirmación al instante. Te recordamos por mail.</p>
+            </article>
+        </div>
+    </section>
+
+    <section id="reservar" class="card" style="margin-bottom:2rem;">
+        <div class="section-heading">
+            <div>
+                <h2 style="margin:0;">Reservá tu turno</h2>
+                <p style="color:#475569; margin:0;">Tu lugar queda confirmado en segundos.</p>
+            </div>
+        </div>
+        <div class="grid grid-2" style="margin-top:1rem;">
             <div>
                 <h3>1. Elegí servicio y barbero</h3>
                 <form id="form-disponibilidad">

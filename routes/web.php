@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminBarberiaController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BarberoAdminController;
 use App\Http\Controllers\BarberiaController;
@@ -25,6 +26,7 @@ Route::get('/', function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [BarberiaController::class, 'index'])->name('dashboard');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::post('/admin/barberia', [AdminBarberiaController::class, 'seleccionar'])->name('admin.barberia.seleccionar');
 
     Route::post('/barberos', [BarberoAdminController::class, 'store'])->name('barberos.store');
     Route::patch('/barberos/{barbero}', [BarberoAdminController::class, 'update'])->name('barberos.update');
