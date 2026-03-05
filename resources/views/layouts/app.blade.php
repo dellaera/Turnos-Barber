@@ -52,6 +52,14 @@
             padding: 0.4rem 1rem;
             cursor: pointer;
         }
+        nav select {
+            border-radius: 999px;
+            border: 1px solid rgba(226, 232, 240, 0.4);
+            background: rgba(15, 23, 42, 0.25);
+            color: #e2e8f0;
+            padding: 0.35rem 0.85rem;
+            font-weight: 600;
+        }
         main {
             max-width: 960px;
             margin: 2rem auto;
@@ -203,6 +211,13 @@
     @stack('styles')
 </head>
 <body>
+    @php
+        $currentUser = Auth::user();
+        $barberiaActivaNav = $currentUser?->barberiaActiva();
+        $adminBarberiasNav = $currentUser?->esAdmin()
+            ? \App\Models\Barberia::orderBy('nombre')->get()
+            : collect();
+    @endphp
     <header>
         <div class="top-bar">
             <h1>Turnos Barber</h1>
@@ -212,6 +227,19 @@
                     <a href="{{ route('turnos.index') }}">Turnos</a>
                     @if(Auth::user()->barberia)
                         <a href="{{ route('barberias.show', Auth::user()->barberia) }}" target="_blank">Vista pública</a>
+                    @endif
+                    @if($currentUser?->esAdmin())
+                        <form method="POST" action="{{ route('admin.barberia.seleccionar') }}">
+                            @csrf
+                            <select name="barberia_id" onchange="this.form.submit()">
+                                <option value="">Seleccionar barbería…</option>
+                                @foreach($adminBarberiasNav as $barberiaNav)
+                                    <option value="{{ $barberiaNav->id }}" {{ $barberiaActivaNav && $barberiaActivaNav->id === $barberiaNav->id ? 'selected' : '' }}>
+                                        {{ $barberiaNav->nombre }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </form>
                     @endif
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf

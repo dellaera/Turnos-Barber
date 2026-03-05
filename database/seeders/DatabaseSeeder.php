@@ -16,11 +16,21 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@turnosbarber.com'],
+            [
+                'name' => 'Admin Turnos Barber',
+                'password' => bcrypt('password'),
+                'rol' => 'admin',
+            ]
+        );
+
         $user = User::firstOrCreate(
             ['email' => 'demo@turnosbarber.com'],
             [
                 'name' => 'Demo Barbería',
                 'password' => bcrypt('password'),
+                'rol' => 'dueno',
             ]
         );
 

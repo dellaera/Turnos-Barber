@@ -28,18 +28,20 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::post('/admin/barberia', [AdminBarberiaController::class, 'seleccionar'])->name('admin.barberia.seleccionar');
 
-    Route::post('/barberos', [BarberoAdminController::class, 'store'])->name('barberos.store');
-    Route::patch('/barberos/{barbero}', [BarberoAdminController::class, 'update'])->name('barberos.update');
-    Route::delete('/barberos/{barbero}', [BarberoAdminController::class, 'destroy'])->name('barberos.destroy');
+    Route::middleware('barberia.seleccionada')->group(function () {
+        Route::post('/barberos', [BarberoAdminController::class, 'store'])->name('barberos.store');
+        Route::patch('/barberos/{barbero}', [BarberoAdminController::class, 'update'])->name('barberos.update');
+        Route::delete('/barberos/{barbero}', [BarberoAdminController::class, 'destroy'])->name('barberos.destroy');
 
-    Route::post('/servicios', [ServicioAdminController::class, 'store'])->name('servicios.store');
-    Route::patch('/servicios/{servicio}', [ServicioAdminController::class, 'update'])->name('servicios.update');
-    Route::delete('/servicios/{servicio}', [ServicioAdminController::class, 'destroy'])->name('servicios.destroy');
+        Route::post('/servicios', [ServicioAdminController::class, 'store'])->name('servicios.store');
+        Route::patch('/servicios/{servicio}', [ServicioAdminController::class, 'update'])->name('servicios.update');
+        Route::delete('/servicios/{servicio}', [ServicioAdminController::class, 'destroy'])->name('servicios.destroy');
 
-    Route::patch('/barberia', [BarberiaController::class, 'update'])->name('barberia.update');
+        Route::patch('/barberia', [BarberiaController::class, 'update'])->name('barberia.update');
 
-    Route::get('/turnos', [TurnoController::class, 'index'])->name('turnos.index');
-    Route::patch('/turnos/{turno}', [TurnoController::class, 'actualizarEstado'])->name('turnos.actualizar-estado');
+        Route::get('/turnos', [TurnoController::class, 'index'])->name('turnos.index');
+        Route::patch('/turnos/{turno}', [TurnoController::class, 'actualizarEstado'])->name('turnos.actualizar-estado');
+    });
 });
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
