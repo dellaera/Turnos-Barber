@@ -128,12 +128,22 @@ class TurnoController extends Controller
         $hora = Carbon::createFromFormat('H:i', $validated['hora'])->format('H:i:00');
 
         $cliente = Cliente::firstOrCreate(
-            ['telefono' => $validated['cliente']['telefono']],
+            [
+                'barberia_id' => $barberia->id,
+                'telefono' => $validated['cliente']['telefono'],
+            ],
             [
                 'nombre' => $validated['cliente']['nombre'],
                 'email' => $validated['cliente']['email'] ?? null,
             ]
         );
+
+        if (! $cliente->wasRecentlyCreated) {
+            $cliente->update([
+                'nombre' => $validated['cliente']['nombre'],
+                'email' => $validated['cliente']['email'] ?? $cliente->email,
+            ]);
+        }
 
         $yaTomado = Turno::where('barbero_id', $barbero->id)
             ->whereDate('fecha', $fecha)

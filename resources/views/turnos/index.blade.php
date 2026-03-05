@@ -1,16 +1,20 @@
 @extends('layouts.app')
 
-@section('content')
+@section('page_header')
     <section class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+        <div class="section-heading">
             <div>
                 <h2 style="margin:0;">Turnos</h2>
-                <p style="color:#475569;">Administrá los turnos de tu barbería con filtros y cambios de estado.</p>
+                <p style="color:#475569; margin:0;">Administrá la agenda con filtros, estados y acciones rápidas.</p>
             </div>
             <a class="btn" style="background:#f1f5f9;" href="{{ route('dashboard') }}">← Volver al dashboard</a>
         </div>
+    </section>
+@endsection
 
-        <form method="GET" class="grid grid-2" style="gap:1rem; margin-top:1.5rem;">
+@section('content')
+    <section class="card">
+        <form method="GET" class="grid grid-2" style="gap:1rem;">
             <div>
                 <label>Desde</label>
                 <input type="date" name="desde" value="{{ $filters['desde'] ?? '' }}">
@@ -59,15 +63,15 @@
         </form>
     </section>
 
-    <section class="card" style="margin-top:2rem;">
+    <section class="card">
         @if($turnos->isEmpty())
             <p>No hay turnos con los criterios seleccionados.</p>
         @else
             <div style="overflow-x:auto;">
-                <table style="width:100%; border-collapse:collapse;">
+                <table>
                     <thead>
-                        <tr style="border-bottom:1px solid #e2e8f0; text-align:left;">
-                            <th style="padding:0.75rem 0;">Cliente</th>
+                        <tr>
+                            <th>Cliente</th>
                             <th>Servicio</th>
                             <th>Barbero</th>
                             <th>Fecha</th>

@@ -65,11 +65,51 @@
             margin: 2rem auto;
             padding: 0 1.5rem 3rem;
         }
+        .page-header-slot {
+            margin-bottom: 2rem;
+        }
+        .page-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        .panel-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .panel-nav button {
+            border: 1px solid #cbd5f5;
+            background: #fff;
+            border-radius: 999px;
+            padding: 0.45rem 1.25rem;
+            font-weight: 600;
+            color: #0f172a;
+            cursor: pointer;
+        }
+        .panel-nav button.active {
+            background: #2563eb;
+            color: #fff;
+            border-color: #2563eb;
+        }
+        .panel {
+            display: none;
+        }
+        .panel.active {
+            display: block;
+        }
         .card {
             background: #fff;
             border-radius: 1rem;
             padding: 1.5rem;
             box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+        }
+        .subcard {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.85rem;
+            padding: 1rem;
+            background: #fff;
         }
         .page-hero {
             background: linear-gradient(120deg, #0f172a, #1e293b);
@@ -78,6 +118,47 @@
             padding: 2rem 2.5rem;
             box-shadow: 0 20px 35px rgba(15, 23, 42, 0.4);
             margin-bottom: 2rem;
+        }
+        .page-hero .hero-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            align-items: stretch;
+        }
+        .page-hero .hero-info {
+            flex: 1.4;
+            min-width: 240px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .page-hero .hero-summary {
+            flex: 1;
+            min-width: 240px;
+            background: rgba(15, 23, 42, 0.35);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .page-hero .hero-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.75rem;
+        }
+        .page-hero .hero-metrics article {
+            background: rgba(15, 23, 42, 0.45);
+            border-radius: 0.85rem;
+            padding: 0.85rem;
+        }
+        .page-hero .hero-metrics article span {
+            display: block;
+            font-size: 0.8rem;
+            color: #cbd5f5;
+        }
+        .page-hero .hero-metrics article strong {
+            font-size: 1.35rem;
         }
         .page-hero h2 {
             margin: 0.25rem 0 0;
@@ -98,6 +179,16 @@
             background: rgba(255, 255, 255, 0.15);
             color: #e2e8f0;
             font-size: 0.9rem;
+        }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.2rem 0.75rem;
+            border-radius: 999px;
+            background: #e0f2fe;
+            color: #0369a1;
+            font-size: 0.85rem;
+            font-weight: 600;
         }
         .stats-grid {
             display: grid;
@@ -144,6 +235,21 @@
             border-radius: 50%;
             background: #2563eb;
             margin-top: 0.4rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table thead th {
+            text-align: left;
+            padding: 0.75rem 0;
+            font-size: 0.92rem;
+            color: #475569;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        table tbody td {
+            padding: 0.7rem 0;
+            border-bottom: 1px solid #f1f5f9;
         }
         a {
             color: #2563eb;
@@ -192,6 +298,14 @@
             padding: 0.65rem 0.85rem;
             font-size: 1rem;
             background: #fff;
+        }
+        input[type="radio"],
+        input[type="checkbox"] {
+            width: auto;
+            padding: 0;
+            margin: 0;
+            transform: scale(0.95);
+            accent-color: #2563eb;
         }
         .alert {
             padding: 0.85rem 1.25rem;
@@ -254,6 +368,10 @@
             <div class="alert alert-success">{{ session('status') }}</div>
         @endif
 
+        @if (session('error'))
+            <div class="alert alert-error">{{ session('error') }}</div>
+        @endif
+
         @if ($errors->any())
             <div class="alert alert-error">
                 <ul style="margin:0; padding-left:1.25rem;">
@@ -264,8 +382,19 @@
             </div>
         @endif
 
-        @yield('content')
+        @hasSection('page_header')
+            <div class="page-header-slot">
+                @yield('page_header')
+            </div>
+        @endif
+
+        <div class="page-content">
+            @yield('content')
+        </div>
     </main>
+    <footer style="background:#0f172a; color:#94a3b8; padding:1.25rem 2rem; text-align:center;">
+        <small>Turnos Barber · Simplificando reservas para barberías · soporte@turnosbarber.com</small>
+    </footer>
     @stack('scripts')
 </body>
 </html>

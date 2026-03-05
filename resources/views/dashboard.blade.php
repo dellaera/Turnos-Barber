@@ -1,32 +1,73 @@
 @extends('layouts.app')
 
+@section('page_header')
+    @if($barberia)
+        <section class="page-hero">
+            <div class="hero-grid">
+                <div class="hero-info">
+                    <div style="display:flex; gap:1rem; align-items:center;">
+                        @if($barberia->logo_url)
+                            <img src="{{ $barberia->logo_url }}" alt="Logo {{ $barberia->nombre }}" style="height:78px; width:78px; border-radius:1rem; object-fit:cover; background:#fff; padding:0.45rem;">
+                        @endif
+                        <div>
+                            <h2 style="margin:0;">{{ $barberia->nombre }}</h2>
+                            <p style="margin:0.25rem 0 0; color:#cbd5f5; font-size:0.95rem;">Panel interno de gestión</p>
+                        </div>
+                    </div>
+                    <div class="hero-actions">
+                        <a class="btn btn-primary" href="{{ route('turnos.index') }}">Ver agenda completa</a>
+                        <a class="btn" style="background:#e2e8f0; color:#0f172a;" href="{{ route('barberias.show', $barberia) }}" target="_blank">Página pública</a>
+                    </div>
+                </div>
+                <div class="hero-summary">
+                    <div class="badge" style="align-self:flex-start;">{{ $barberia->barberos->count() }} barberos • {{ $barberia->servicios->count() }} servicios</div>
+                    <div class="hero-metrics">
+                        <article>
+                            <span>Turnos hoy</span>
+                            <strong>{{ $metrics['turnos_hoy'] }}</strong>
+                        </article>
+                        <article>
+                            <span>Clientes únicos</span>
+                            <strong>{{ $metrics['clientes_unicos'] }}</strong>
+                        </article>
+                        <article>
+                            <span>Barberos activos</span>
+                            <strong>{{ $metrics['barberos_activos'] }}</strong>
+                        </article>
+                    </div>
+                    @if($proximoTurno)
+                        <div style="font-size:0.95rem;">
+                            <p style="margin:0; color:#cbd5f5;">Próximo turno</p>
+                            <strong>{{ $proximoTurno->cliente->nombre }}</strong> · {{ \Carbon\Carbon::parse($proximoTurno->fecha)->translatedFormat('d M, H:i') }} con {{ $proximoTurno->barbero->nombre }}
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </section>
+    @else
+        <section class="card">
+            <h2 style="margin:0;">Seleccioná una barbería</h2>
+            <p style="color:#475569; margin:0.25rem 0 0;">Elegí qué barbería querés administrar para acceder a las herramientas.</p>
+        </section>
+    @endif
+@endsection
+
 @section('content')
     @unless($barberia)
         <section class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
-                <div>
-                    <h2 style="margin:0;">Barberías</h2>
-                    <p style="color:#475569;">Listado de barberías dadas de alta en el sistema.</p>
-                </div>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button class="btn" style="background:#f1f5f9; color:#0f172a;">Cerrar sesión</button>
-                </form>
-            </div>
-
             @if($barberias->isEmpty())
                 <p>No hay barberías aún. Podés crearlas desde seeds o un panel de administración.</p>
             @else
-                <div class="grid grid-2" style="margin-top:1.5rem;">
+                <div class="grid grid-2">
                     @foreach($barberias as $barberiaItem)
-                        <article style="border:1px solid #e2e8f0; border-radius:1rem; padding:1rem; background:#fff;">
+                        <article class="subcard">
                             <h3 style="margin:0;">{{ $barberiaItem->nombre }}</h3>
                             <p style="margin:0.35rem 0; color:#64748b;">{{ $barberiaItem->direccion }}</p>
                             <p style="margin:0; font-size:0.95rem; color:#475569;">
                                 {{ $barberiaItem->barberos_count }} barberos · {{ $barberiaItem->servicios_count }} servicios
                             </p>
                             <div style="margin-top:1rem;">
-                                <a class="btn btn-primary" href="{{ route('barberias.show', $barberiaItem) }}">
+                                <a class="btn btn-primary" href="{{ route('barberias.show', $barberiaItem) }}" target="_blank">
                                     Ver página pública
                                 </a>
                             </div>
@@ -38,28 +79,17 @@
     @endunless
 
     @if($barberia)
-        <section class="page-hero">
-            <div style="display:flex; flex-wrap:wrap; gap:1.5rem; align-items:center;">
-                <div style="display:flex; gap:1rem; align-items:center;">
-                    @if($barberia->logo_url)
-                        <img src="{{ $barberia->logo_url }}" alt="Logo {{ $barberia->nombre }}" style="height:72px; width:72px; border-radius:1rem; object-fit:cover; background:#fff; padding:0.4rem;">
-                    @endif
-                    <div>
-                        <div class="badge">{{ $barberia->barberos->count() }} barberos • {{ $barberia->servicios->count() }} servicios</div>
-                        <h2>{{ $barberia->nombre }}</h2>
-                        <p style="margin:0.35rem 0; color:#cbd5f5;">{{ $barberia->direccion }} · {{ $barberia->telefono }}</p>
-                    </div>
-                </div>
-                <div class="hero-actions">
-                    <a class="btn btn-primary" href="{{ route('turnos.index') }}">Ver agenda</a>
-                    <a class="btn" style="background:#e2e8f0; color:#0f172a;" href="{{ route('barberias.show', $barberia) }}" target="_blank">Página pública</a>
-                    <a class="btn" style="background:#334155; color:#e2e8f0;" href="#personalizacion">Editar marca</a>
-                </div>
+        <div id="dashboard-panels" class="panel-container">
+            <div class="panel-nav" id="dashboard-panel-tabs">
+                <button class="active" data-panel-target="panel-resumen">Operaciones</button>
+                <button data-panel-target="panel-turnos">Turnos recientes</button>
+                <button data-panel-target="panel-clientes">Clientes</button>
+                <button data-panel-target="panel-marca">Marca</button>
+                <button data-panel-target="panel-equipo">Equipo</button>
+                <button data-panel-target="panel-servicios">Servicios</button>
             </div>
-        </section>
 
-        <div class="dashboard-layout">
-            <div class="dashboard-column">
+            <div class="panel active" id="panel-resumen">
                 <section class="card">
                     <div class="section-heading">
                         <div>
@@ -102,8 +132,83 @@
                         </div>
                     @endif
                 </section>
+            </div>
 
-                <section id="turnos-recientes" class="card">
+            <div class="panel" id="panel-clientes">
+                <section class="card">
+                    <div class="section-heading">
+                        <div>
+                            <h2 style="margin:0;">Clientes</h2>
+                            <p style="color:#475569; margin:0;">Contactos recurrentes y su actividad reciente.</p>
+                        </div>
+                        <span class="badge">{{ $metrics['clientes_unicos'] }} clientes únicos</span>
+                    </div>
+
+                    <form method="POST" action="{{ route('clientes.store') }}" class="grid grid-2" style="gap:1rem; margin-bottom:1.25rem;">
+                        @csrf
+                        <div>
+                            <label for="cliente_nombre">Nombre</label>
+                            <input type="text" id="cliente_nombre" name="nombre" placeholder="Nuevo cliente" required>
+                        </div>
+                        <div>
+                            <label for="cliente_telefono">Teléfono</label>
+                            <input type="text" id="cliente_telefono" name="telefono" placeholder="Ej: +54 11..." required>
+                        </div>
+                        <div>
+                            <label for="cliente_email">Email (opcional)</label>
+                            <input type="email" id="cliente_email" name="email" placeholder="cliente@mail.com">
+                        </div>
+                        <div style="display:flex; align-items:flex-end;">
+                            <button class="btn btn-primary" style="width:100%;">Agregar cliente</button>
+                        </div>
+                    </form>
+
+                    @if($clientes->isEmpty())
+                        <p>No hay clientes registrados todavía.</p>
+                    @else
+                        <div class="grid grid-2">
+                            @foreach($clientes as $cliente)
+                                <article class="subcard" style="display:flex; flex-direction:column; gap:0.75rem;">
+                                    <form method="POST" action="{{ route('clientes.update', $cliente) }}" class="grid" style="gap:0.75rem;">
+                                        @csrf
+                                        @method('PATCH')
+                                        <div>
+                                            <label>Nombre</label>
+                                            <input type="text" name="nombre" value="{{ $cliente->nombre }}" required>
+                                        </div>
+                                        <div>
+                                            <label>Teléfono</label>
+                                            <input type="text" name="telefono" value="{{ $cliente->telefono }}" required>
+                                        </div>
+                                        <div>
+                                            <label>Email</label>
+                                            <input type="email" name="email" value="{{ $cliente->email }}">
+                                        </div>
+                                        @if($cliente->ultimoTurno)
+                                            <p style="margin:0; color:#475569; font-size:0.9rem;">
+                                                Último turno: {{ \Carbon\Carbon::parse($cliente->ultimoTurno->fecha)->translatedFormat('d M') }} · {{ \Carbon\Carbon::parse($cliente->ultimoTurno->hora)->format('H:i') }} con {{ $cliente->ultimoTurno->barbero->nombre }}
+                                            </p>
+                                        @else
+                                            <p style="margin:0; color:#94a3b8; font-size:0.9rem;">Sin turnos registrados aún.</p>
+                                        @endif
+                                        <div style="display:flex; gap:0.5rem;">
+                                            <button class="btn btn-primary" style="flex:1;">Guardar</button>
+                                            <button form="delete-cliente-{{ $cliente->id }}" class="btn" style="flex:1; background:#fee2e2; color:#991b1b;">Eliminar</button>
+                                        </div>
+                                    </form>
+                                    <form id="delete-cliente-{{ $cliente->id }}" method="POST" action="{{ route('clientes.destroy', $cliente) }}" onsubmit="return confirm('¿Eliminar al cliente {{ $cliente->nombre }}? Esta acción no se puede deshacer.');">
+                                        @csrf
+                                        @method('DELETE')
+                                    </form>
+                                </article>
+                            @endforeach
+                        </div>
+                    @endif
+                </section>
+            </div>
+
+            <div class="panel" id="panel-turnos">
+                <section class="card">
                     <div class="section-heading">
                         <div>
                             <h2 style="margin:0;">Turnos recientes</h2>
@@ -116,10 +221,10 @@
                         <p>No hay turnos registrados.</p>
                     @else
                         <div style="overflow-x:auto;">
-                            <table style="width:100%; border-collapse:collapse;">
+                            <table>
                                 <thead>
-                                    <tr style="text-align:left; border-bottom:1px solid #e2e8f0;">
-                                        <th style="padding:0.75rem 0;">Cliente</th>
+                                    <tr>
+                                        <th>Cliente</th>
                                         <th>Servicio</th>
                                         <th>Barbero</th>
                                         <th>Fecha</th>
@@ -129,8 +234,8 @@
                                 </thead>
                                 <tbody>
                                     @foreach($turnos as $turno)
-                                        <tr style="border-bottom:1px solid #e2e8f0;">
-                                            <td style="padding:0.65rem 0;">
+                                        <tr>
+                                            <td>
                                                 <strong>{{ $turno->cliente->nombre }}</strong><br>
                                                 <span style="color:#64748b; font-size:0.9rem;">{{ $turno->cliente->telefono }}</span>
                                             </td>
@@ -138,7 +243,7 @@
                                             <td>{{ $turno->barbero->nombre }}</td>
                                             <td>{{ \Carbon\Carbon::parse($turno->fecha)->format('d/m/Y') }}</td>
                                             <td>{{ \Carbon\Carbon::parse($turno->hora)->format('H:i') }}</td>
-                                            <td><span style="background:#e0f2fe; color:#0369a1; padding:0.2rem 0.6rem; border-radius:999px; font-size:0.85rem;">{{ ucfirst($turno->estado) }}</span></td>
+                                            <td><span class="pill">{{ ucfirst($turno->estado) }}</span></td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -148,7 +253,7 @@
                 </section>
             </div>
 
-            <div class="dashboard-column">
+            <div class="panel" id="panel-marca">
                 <section id="personalizacion" class="card">
                     <h2 style="margin-top:0;">Marca y comunicación</h2>
                     <p style="color:#475569;">Todo lo que tus clientes ven en la web y en los correos.</p>
@@ -189,7 +294,9 @@
                         </div>
                     </form>
                 </section>
+            </div>
 
+            <div class="panel" id="panel-equipo">
                 <section id="barberos" class="card">
                     <h2 style="margin-top:0;">Equipo de barberos</h2>
                     <p style="color:#475569;">Sumá o editá perfiles en minutos.</p>
@@ -236,7 +343,9 @@
                         </div>
                     @endif
                 </section>
+            </div>
 
+            <div class="panel" id="panel-servicios">
                 <section id="servicios" class="card">
                     <h2 style="margin-top:0;">Catálogo de servicios</h2>
                     <p style="color:#475569;">Actualizá precios y duraciones para sincronizar la agenda.</p>
@@ -299,3 +408,24 @@
         </div>
     @endif
 @endsection
+
+@if($barberia)
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const buttons = document.querySelectorAll('#dashboard-panel-tabs button');
+                const panels = document.querySelectorAll('#dashboard-panels .panel');
+                buttons.forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        const target = btn.getAttribute('data-panel-target');
+                        buttons.forEach((b) => b.classList.remove('active'));
+                        panels.forEach((panel) => panel.classList.remove('active'));
+                        btn.classList.add('active');
+                        const panel = document.getElementById(target);
+                        panel?.classList.add('active');
+                    });
+                });
+            });
+        </script>
+    @endpush
+@endif

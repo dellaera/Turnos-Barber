@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminBarberiaController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BarberoAdminController;
 use App\Http\Controllers\BarberiaController;
+use App\Http\Controllers\ClienteAdminController;
 use App\Http\Controllers\ServicioAdminController;
 use App\Http\Controllers\TurnoController;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +37,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/servicios', [ServicioAdminController::class, 'store'])->name('servicios.store');
         Route::patch('/servicios/{servicio}', [ServicioAdminController::class, 'update'])->name('servicios.update');
         Route::delete('/servicios/{servicio}', [ServicioAdminController::class, 'destroy'])->name('servicios.destroy');
+
+        Route::post('/clientes', [ClienteAdminController::class, 'store'])->name('clientes.store');
+        Route::patch('/clientes/{cliente}', [ClienteAdminController::class, 'update'])->name('clientes.update');
+        Route::delete('/clientes/{cliente}', [ClienteAdminController::class, 'destroy'])->name('clientes.destroy');
 
         Route::patch('/barberia', [BarberiaController::class, 'update'])->name('barberia.update');
 

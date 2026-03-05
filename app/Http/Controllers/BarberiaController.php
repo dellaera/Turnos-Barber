@@ -15,7 +15,10 @@ class BarberiaController extends Controller
         $user = Auth::user();
         $barberia = $user?->barberiaActiva();
         if ($barberia) {
-            $barberia->load(['barberos' => fn ($q) => $q->latest(), 'servicios' => fn ($q) => $q->latest()]);
+            $barberia->load([
+                'barberos' => fn ($q) => $q->latest(),
+                'servicios' => fn ($q) => $q->latest(),
+            ]);
             $barberia->loadCount(['barberos', 'servicios']);
         }
 
@@ -26,6 +29,13 @@ class BarberiaController extends Controller
         $servicios = $barberia?->servicios ?? collect();
         $turnos = $barberia
             ? $barberia->turnos()->with(['cliente', 'servicio', 'barbero'])->latest()->take(5)->get()
+            : collect();
+        $clientes = $barberia
+            ? $barberia->clientes()
+                ->with(['ultimoTurno.barbero', 'ultimoTurno.servicio'])
+                ->latest()
+                ->take(10)
+                ->get()
             : collect();
 
         $metrics = [
@@ -51,7 +61,7 @@ class BarberiaController extends Controller
                 ->first();
         }
 
-        return view('dashboard', compact('barberias', 'barberia', 'barberos', 'servicios', 'turnos', 'metrics', 'proximoTurno'));
+        return view('dashboard', compact('barberias', 'barberia', 'barberos', 'servicios', 'turnos', 'clientes', 'metrics', 'proximoTurno'));
     }
 
     public function update(Request $request)

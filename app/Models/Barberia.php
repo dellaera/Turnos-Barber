@@ -37,6 +37,11 @@ class Barberia extends Model
         return $this->hasMany(Turno::class);
     }
 
+    public function clientes()
+    {
+        return $this->hasMany(Cliente::class);
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';
