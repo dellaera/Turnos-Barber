@@ -22,6 +22,24 @@ class BarberiaController extends Controller
         return view('dashboard', compact('barberias', 'barberia', 'barberos', 'servicios', 'turnos'));
     }
 
+    public function update()
+    {
+        $barberia = Auth::user()->barberia;
+        abort_unless($barberia, 403);
+
+        $data = request()->validate([
+            'logo_url' => ['nullable', 'url'],
+            'color_primario' => ['nullable', 'string', 'max:20'],
+            'color_secundario' => ['nullable', 'string', 'max:20'],
+            'mensaje_bienvenida' => ['nullable', 'string'],
+            'informacion_contacto' => ['nullable', 'string'],
+        ]);
+
+        $barberia->update($data);
+
+        return back()->with('status', 'Personalización actualizada');
+    }
+
     public function show(Barberia $barberia)
     {
         $barberia->load(['barberos' => fn ($q) => $q->where('activo', true), 'servicios']);

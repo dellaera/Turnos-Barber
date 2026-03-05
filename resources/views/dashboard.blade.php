@@ -35,6 +35,41 @@
         @endif
     </section>
 
+    @if($barberia)
+        <section class="card" style="margin-top:2rem;">
+            <h2 style="margin-top:0;">Personalización</h2>
+            <p style="color:#475569;">Mostrá tu marca en la página pública.</p>
+
+            <form method="POST" action="{{ route('barberia.update') }}" class="grid grid-2" style="gap:1rem;">
+                @csrf
+                @method('PATCH')
+                <div>
+                    <label for="logo_url">Logo (URL)</label>
+                    <input type="url" id="logo_url" name="logo_url" value="{{ old('logo_url', $barberia->logo_url) }}" placeholder="https://...logo.png">
+                </div>
+                <div>
+                    <label for="color_primario">Color primario</label>
+                    <input type="text" id="color_primario" name="color_primario" value="{{ old('color_primario', $barberia->color_primario) }}" placeholder="#2563eb">
+                </div>
+                <div>
+                    <label for="color_secundario">Color secundario</label>
+                    <input type="text" id="color_secundario" name="color_secundario" value="{{ old('color_secundario', $barberia->color_secundario) }}" placeholder="#3b82f6">
+                </div>
+                <div>
+                    <label for="mensaje_bienvenida">Mensaje de bienvenida</label>
+                    <textarea id="mensaje_bienvenida" name="mensaje_bienvenida" rows="3">{{ old('mensaje_bienvenida', $barberia->mensaje_bienvenida) }}</textarea>
+                </div>
+                <div class="grid" style="gap:0.5rem; grid-column:span 2;">
+                    <label for="informacion_contacto">Información de contacto</label>
+                    <textarea id="informacion_contacto" name="informacion_contacto" rows="3" placeholder="WhatsApp, dirección, instrucciones...">{{ old('informacion_contacto', $barberia->informacion_contacto) }}</textarea>
+                </div>
+                <div style="grid-column:span 2; text-align:right;">
+                    <button class="btn btn-primary">Guardar cambios</button>
+                </div>
+            </form>
+        </section>
+    @endif
+
     <section class="card" style="margin-top:2rem;">
         <h2 style="margin-top:0;">Turnos recientes</h2>
         <p style="color:#475569;">Últimos turnos reservados en tu barbería.</p>

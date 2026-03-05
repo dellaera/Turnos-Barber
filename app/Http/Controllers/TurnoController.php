@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ConfirmacionTurnoMail;
 use App\Models\Barberia;
 use App\Models\Cliente;
 use App\Models\Turno;
@@ -10,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class TurnoController extends Controller
 {
@@ -147,6 +149,11 @@ class TurnoController extends Controller
                 'estado' => 'reservado',
             ]);
         });
+
+        if ($cliente->email) {
+            $turno->load(['barberia', 'barbero', 'servicio', 'cliente']);
+            Mail::to($cliente->email)->send(new ConfirmacionTurnoMail($turno));
+        }
 
         return response()->json([
             'message' => 'Turno reservado correctamente',

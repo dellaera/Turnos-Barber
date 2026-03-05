@@ -15,6 +15,11 @@ class Barberia extends Model
         'direccion',
         'telefono',
         'slug',
+        'logo_url',
+        'color_primario',
+        'color_secundario',
+        'mensaje_bienvenida',
+        'informacion_contacto',
     ];
 
     public function barberos()

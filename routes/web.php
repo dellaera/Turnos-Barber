@@ -34,6 +34,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/servicios/{servicio}', [ServicioAdminController::class, 'update'])->name('servicios.update');
     Route::delete('/servicios/{servicio}', [ServicioAdminController::class, 'destroy'])->name('servicios.destroy');
 
+    Route::patch('/barberia', [BarberiaController::class, 'update'])->name('barberia.update');
+
     Route::get('/turnos', [TurnoController::class, 'index'])->name('turnos.index');
     Route::patch('/turnos/{turno}', [TurnoController::class, 'actualizarEstado'])->name('turnos.actualizar-estado');
 });
