@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\ConfirmacionTurnoMail;
+use App\Mail\EstadoTurnoActualizadoMail;
 use App\Models\Barberia;
 use App\Models\Cliente;
 use App\Models\Turno;
@@ -58,6 +59,11 @@ class TurnoController extends Controller
         ]);
 
         $turno->update(['estado' => $data['estado']]);
+
+        if ($turno->cliente->email) {
+            $turno->loadMissing(['barberia', 'barbero', 'servicio', 'cliente']);
+            Mail::to($turno->cliente->email)->send(new EstadoTurnoActualizadoMail($turno));
+        }
 
         return back()->with('status', 'Estado del turno actualizado');
     }

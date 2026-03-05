@@ -1,10 +1,40 @@
 @extends('layouts.app')
 
 @section('content')
-    <section class="card">
+    @php
+        $colorPrimario = $barberia->color_primario ?? '#0f172a';
+        $colorSecundario = $barberia->color_secundario ?? '#2563eb';
+        $logoUrl = $barberia->logo_url
+            ? (\Illuminate\Support\Str::startsWith($barberia->logo_url, ['http://', 'https://'])
+                ? $barberia->logo_url
+                : asset($barberia->logo_url))
+            : null;
+    @endphp
+    <section class="card" style="border-top:6px solid {{ $colorPrimario }};">
         <a href="{{ route('dashboard') }}" style="color:#64748b; font-size:0.9rem">← Volver al dashboard</a>
-        <h2 style="margin:0.3rem 0 0;">{{ $barberia->nombre }}</h2>
-        <p style="margin:0; color:#475569;">{{ $barberia->direccion }} · Tel: {{ $barberia->telefono }}</p>
+
+        <div style="display:flex; flex-wrap:wrap; gap:1rem; align-items:center; margin:1rem 0 0;">
+            @if($logoUrl)
+                <img src="{{ $logoUrl }}" alt="Logo {{ $barberia->nombre }}" style="height:72px; object-fit:contain;">
+            @endif
+            <div>
+                <h2 style="margin:0; color:{{ $colorPrimario }};">{{ $barberia->nombre }}</h2>
+                <p style="margin:0.2rem 0 0; color:#475569;">{{ $barberia->direccion }} · Tel: {{ $barberia->telefono }}</p>
+            </div>
+        </div>
+
+        @if($barberia->mensaje_bienvenida)
+            <div style="background:{{ $colorSecundario }}15; border-radius:1rem; padding:1rem 1.25rem; margin-top:1.25rem; color:{{ $colorPrimario }};">
+                {{ $barberia->mensaje_bienvenida }}
+            </div>
+        @endif
+
+        @if($barberia->informacion_contacto)
+            <div style="margin-top:1rem; color:#475569;">
+                <strong>Información adicional:</strong><br>
+                {!! nl2br(e($barberia->informacion_contacto)) !!}
+            </div>
+        @endif
 
         <div class="grid grid-2" style="margin-top:2rem;">
             <div>
@@ -82,6 +112,16 @@ const turnoFecha = document.getElementById('turno_fecha');
 const btnDisponibilidad = document.getElementById('btn-disponibilidad');
 const btnReservar = document.getElementById('btn-reservar');
 
+const parseJsonResponse = async (response) => {
+    const contentType = response.headers.get('content-type') ?? '';
+    if (contentType.includes('application/json')) {
+        return response.json();
+    }
+
+    const text = await response.text();
+    throw new Error(text?.trim() || 'Recibimos una respuesta inesperada del servidor. Intentalo de nuevo.');
+};
+
 const setMensaje = (texto, tipo = 'info', target = mensaje) => {
     if (!target) return;
     const colores = {
@@ -105,11 +145,16 @@ formDisponibilidad?.addEventListener('submit', async (e) => {
     let data;
 
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
         if (!response.ok) {
             throw new Error('No pudimos obtener disponibilidad.');
         }
-        data = await response.json();
+        data = await parseJsonResponse(response);
     } catch (error) {
         disponibilidadBox.innerHTML = '';
         setMensaje(error.message, 'error', disponibilidadError);
@@ -151,12 +196,14 @@ formTurno?.addEventListener('submit', async (e) => {
         const response = await fetch('{{ route('turnos.reservar', $barberia) }}', {
             method: 'POST',
             headers: {
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'X-Requested-With': 'XMLHttpRequest',
             },
             body,
         });
 
-        const data = await response.json();
+        const data = await parseJsonResponse(response);
         if (!response.ok) {
             const errors = data.errors ? Object.values(data.errors).flat().join(' ') : data.message;
             throw new Error(errors || 'No pudimos reservar el turno.');

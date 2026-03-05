@@ -84,6 +84,20 @@
             font-size: 1rem;
             background: #fff;
         }
+        .alert {
+            padding: 0.85rem 1.25rem;
+            border-radius: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
     </style>
     @stack('styles')
 </head>
@@ -92,6 +106,20 @@
         <h1>Turnos Barber</h1>
     </header>
     <main>
+        @if (session('status'))
+            <div class="alert alert-success">{{ session('status') }}</div>
+        @endif
+
+        @if ($errors->any())
+            <div class="alert alert-error">
+                <ul style="margin:0; padding-left:1.25rem;">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         @yield('content')
     </main>
     @stack('scripts')

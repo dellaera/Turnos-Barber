@@ -40,12 +40,20 @@
             <h2 style="margin-top:0;">Personalización</h2>
             <p style="color:#475569;">Mostrá tu marca en la página pública.</p>
 
-            <form method="POST" action="{{ route('barberia.update') }}" class="grid grid-2" style="gap:1rem;">
+            <div style="background:#eff6ff; border-radius:0.85rem; padding:0.85rem 1rem; margin-bottom:1rem; color:#1d4ed8;">
+                Podés subir un logo desde tu computadora o pegar una URL alojada en la web. También configurás colores y textos que luego se ven en la página pública y en los correos.
+            </div>
+
+            <form method="POST" action="{{ route('barberia.update') }}" class="grid grid-2" style="gap:1rem;" enctype="multipart/form-data">
                 @csrf
                 @method('PATCH')
                 <div>
                     <label for="logo_url">Logo (URL)</label>
                     <input type="url" id="logo_url" name="logo_url" value="{{ old('logo_url', $barberia->logo_url) }}" placeholder="https://...logo.png">
+                </div>
+                <div>
+                    <label for="logo_file">Logo (archivo)</label>
+                    <input type="file" id="logo_file" name="logo_file" accept="image/*">
                 </div>
                 <div>
                     <label for="color_primario">Color primario</label>
@@ -147,7 +155,7 @@
                                     <button form="delete-barbero-{{ $barbero->id }}" class="btn" style="flex:1; background:#fee2e2; color:#991b1b;">Eliminar</button>
                                 </div>
                             </form>
-                            <form id="delete-barbero-{{ $barbero->id }}" method="POST" action="{{ route('barberos.destroy', $barbero) }}">
+                            <form id="delete-barbero-{{ $barbero->id }}" method="POST" action="{{ route('barberos.destroy', $barbero) }}" onsubmit="return confirm('¿Eliminar al barbero {{ $barbero->nombre }}? Esta acción no se puede deshacer.');">
                                 @csrf
                                 @method('DELETE')
                             </form>
@@ -206,7 +214,7 @@
                                     <button form="delete-servicio-{{ $servicio->id }}" class="btn" style="flex:1; background:#fee2e2; color:#991b1b;">Eliminar</button>
                                 </div>
                             </form>
-                            <form id="delete-servicio-{{ $servicio->id }}" method="POST" action="{{ route('servicios.destroy', $servicio) }}">
+                            <form id="delete-servicio-{{ $servicio->id }}" method="POST" action="{{ route('servicios.destroy', $servicio) }}" onsubmit="return confirm('¿Eliminar el servicio {{ $servicio->nombre }}? Esta acción no se puede deshacer.');">
                                 @csrf
                                 @method('DELETE')
                             </form>

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Barberia;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class BarberiaController extends Controller
 {
@@ -22,18 +24,26 @@ class BarberiaController extends Controller
         return view('dashboard', compact('barberias', 'barberia', 'barberos', 'servicios', 'turnos'));
     }
 
-    public function update()
+    public function update(Request $request)
     {
         $barberia = Auth::user()->barberia;
         abort_unless($barberia, 403);
 
-        $data = request()->validate([
+        $data = $request->validate([
             'logo_url' => ['nullable', 'url'],
+            'logo_file' => ['nullable', 'image', 'max:2048'],
             'color_primario' => ['nullable', 'string', 'max:20'],
             'color_secundario' => ['nullable', 'string', 'max:20'],
             'mensaje_bienvenida' => ['nullable', 'string'],
             'informacion_contacto' => ['nullable', 'string'],
         ]);
+
+        if ($request->hasFile('logo_file')) {
+            $path = $request->file('logo_file')->store('logos', 'public');
+            $data['logo_url'] = Storage::url($path);
+        }
+
+        unset($data['logo_file']);
 
         $barberia->update($data);
 

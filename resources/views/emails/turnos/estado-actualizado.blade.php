@@ -11,23 +11,23 @@
 </div>
 @endif
 
-<h1 style="color:{{ $colorPrimario }};">¡Tu turno está confirmado!</h1>
+<h1 style="color:{{ $colorPrimario }};">Actualizamos tu turno</h1>
 
-Hola {{ $turno->cliente->nombre }}, confirmamos tu reserva en **{{ $barberia->nombre }}**.
+Hola {{ $turno->cliente->nombre }}, el estado de tu turno pasó a **{{ ucfirst($turno->estado) }}**.
+
+**Resumen**
+- Barbería: {{ $barberia->nombre }}
+- Servicio: {{ $turno->servicio->nombre }}
+- Barbero: {{ $turno->barbero->nombre }}
+- Fecha y hora: {{ \Carbon\Carbon::parse($turno->fecha)->format('d/m/Y') }} {{ \Carbon\Carbon::parse($turno->hora)->format('H:i') }}
 
 @if($barberia->mensaje_bienvenida)
 > {{ $barberia->mensaje_bienvenida }}
 @endif
 
-**Detalles del turno**
-- Fecha: {{ \Carbon\Carbon::parse($turno->fecha)->format('d/m/Y') }}
-- Hora: {{ \Carbon\Carbon::parse($turno->hora)->format('H:i') }}
-- Servicio: {{ $turno->servicio->nombre }}
-- Barbero: {{ $turno->barbero->nombre }}
+Si necesitás más información, respondé este correo o contactate con la barbería.
 
-Si necesitás reprogramar, respondé este correo o contactate con la barbería.
-
-Gracias por elegirnos,
+Gracias,
 {{ $barberia->nombre }}
 
 <x-mail::subcopy>
