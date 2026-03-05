@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BarberoAdminController;
 use App\Http\Controllers\BarberiaController;
+use App\Http\Controllers\ServicioAdminController;
 use App\Http\Controllers\TurnoController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +25,17 @@ Route::get('/', function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [BarberiaController::class, 'index'])->name('dashboard');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    Route::post('/barberos', [BarberoAdminController::class, 'store'])->name('barberos.store');
+    Route::patch('/barberos/{barbero}', [BarberoAdminController::class, 'update'])->name('barberos.update');
+    Route::delete('/barberos/{barbero}', [BarberoAdminController::class, 'destroy'])->name('barberos.destroy');
+
+    Route::post('/servicios', [ServicioAdminController::class, 'store'])->name('servicios.store');
+    Route::patch('/servicios/{servicio}', [ServicioAdminController::class, 'update'])->name('servicios.update');
+    Route::delete('/servicios/{servicio}', [ServicioAdminController::class, 'destroy'])->name('servicios.destroy');
+
+    Route::get('/turnos', [TurnoController::class, 'index'])->name('turnos.index');
+    Route::patch('/turnos/{turno}', [TurnoController::class, 'actualizarEstado'])->name('turnos.actualizar-estado');
 });
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');

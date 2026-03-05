@@ -6,11 +6,60 @@ use App\Models\Barberia;
 use App\Models\Cliente;
 use App\Models\Turno;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class TurnoController extends Controller
 {
+    public function index(Request $request)
+    {
+        $barberia = Auth::user()->barberia;
+        abort_unless($barberia, 403);
+
+        $filters = $request->only(['desde', 'hasta', 'estado', 'barbero_id', 'servicio_id']);
+
+        $query = $barberia->turnos()->with(['cliente', 'servicio', 'barbero'])->latest();
+
+        if (!empty($filters['desde'])) {
+            $query->whereDate('fecha', '>=', Carbon::parse($filters['desde']));
+        }
+        if (!empty($filters['hasta'])) {
+            $query->whereDate('fecha', '<=', Carbon::parse($filters['hasta']));
+        }
+        if (!empty($filters['estado'])) {
+            $query->where('estado', $filters['estado']);
+        }
+        if (!empty($filters['barbero_id'])) {
+            $query->where('barbero_id', $filters['barbero_id']);
+        }
+        if (!empty($filters['servicio_id'])) {
+            $query->where('servicio_id', $filters['servicio_id']);
+        }
+
+        $turnos = $query->paginate(10)->withQueryString();
+        $barberos = $barberia->barberos()->orderBy('nombre')->get();
+        $servicios = $barberia->servicios()->orderBy('nombre')->get();
+        $estados = ['reservado', 'confirmado', 'completado', 'cancelado', 'ausente'];
+
+        return view('turnos.index', compact('turnos', 'barberos', 'servicios', 'estados', 'filters'));
+    }
+
+    public function actualizarEstado(Request $request, Turno $turno): RedirectResponse
+    {
+        $barberia = Auth::user()->barberia;
+        abort_unless($barberia && $turno->barberia_id === $barberia->id, 403);
+
+        $data = $request->validate([
+            'estado' => ['required', 'in:reservado,confirmado,completado,cancelado,ausente'],
+        ]);
+
+        $turno->update(['estado' => $data['estado']]);
+
+        return back()->with('status', 'Estado del turno actualizado');
+    }
+
     public function disponibilidad(Request $request, Barberia $barberia)
     {
         $validated = $request->validate([

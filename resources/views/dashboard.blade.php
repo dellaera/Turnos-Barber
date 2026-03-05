@@ -39,13 +39,6 @@
         <h2 style="margin-top:0;">Turnos recientes</h2>
         <p style="color:#475569;">Últimos turnos reservados en tu barbería.</p>
 
-        @php
-            $turnos = \App\Models\Turno::with(['cliente', 'servicio', 'barbero'])
-                ->latest()
-                ->take(5)
-                ->get();
-        @endphp
-
         @if($turnos->isEmpty())
             <p>No hay turnos registrados.</p>
         @else
@@ -80,4 +73,112 @@
             </div>
         @endif
     </section>
+
+    @if($barberia)
+        <section class="card" style="margin-top:2rem;">
+            <h2 style="margin-top:0;">Barberos</h2>
+            <p style="color:#475569;">Gestioná el equipo de tu barbería.</p>
+
+            <form method="POST" action="{{ route('barberos.store') }}" class="grid grid-2" style="gap:1rem; margin-bottom:1.5rem;">
+                @csrf
+                <div>
+                    <label for="nuevo_barbero">Nombre</label>
+                    <input type="text" id="nuevo_barbero" name="nombre" placeholder="Nuevo barbero" required>
+                </div>
+                <div style="display:flex; align-items:flex-end;">
+                    <button class="btn btn-primary" style="width:100%;">Agregar barbero</button>
+                </div>
+            </form>
+
+            @if($barberos->isEmpty())
+                <p>No hay barberos cargados.</p>
+            @else
+                <div class="grid grid-2">
+                    @foreach($barberos as $barbero)
+                        <article style="border:1px solid #e2e8f0; border-radius:1rem; padding:1rem; background:#fff;">
+                            <form method="POST" action="{{ route('barberos.update', $barbero) }}" class="grid" style="gap:0.75rem;">
+                                @csrf
+                                @method('PATCH')
+                                <div>
+                                    <label>Nombre</label>
+                                    <input type="text" name="nombre" value="{{ $barbero->nombre }}" required>
+                                </div>
+                                <label style="display:flex; gap:0.5rem; align-items:center;">
+                                    <input type="checkbox" name="activo" value="1" {{ $barbero->activo ? 'checked' : '' }}>
+                                    Activo
+                                </label>
+                                <div style="display:flex; gap:0.5rem;">
+                                    <button class="btn btn-primary" style="flex:1;">Guardar</button>
+                                    <button form="delete-barbero-{{ $barbero->id }}" class="btn" style="flex:1; background:#fee2e2; color:#991b1b;">Eliminar</button>
+                                </div>
+                            </form>
+                            <form id="delete-barbero-{{ $barbero->id }}" method="POST" action="{{ route('barberos.destroy', $barbero) }}">
+                                @csrf
+                                @method('DELETE')
+                            </form>
+                        </article>
+                    @endforeach
+                </div>
+            @endif
+        </section>
+
+        <section class="card" style="margin-top:2rem;">
+            <h2 style="margin-top:0;">Servicios</h2>
+            <p style="color:#475569;">Configurá la lista de servicios disponibles.</p>
+
+            <form method="POST" action="{{ route('servicios.store') }}" class="grid grid-2" style="gap:1rem; margin-bottom:1.5rem;">
+                @csrf
+                <div>
+                    <label for="servicio_nombre">Nombre</label>
+                    <input type="text" id="servicio_nombre" name="nombre" placeholder="Nuevo servicio" required>
+                </div>
+                <div>
+                    <label for="servicio_duracion">Duración (min)</label>
+                    <input type="number" id="servicio_duracion" name="duracion_minutos" min="5" max="240" required>
+                </div>
+                <div>
+                    <label for="servicio_precio">Precio (opcional)</label>
+                    <input type="number" step="0.01" id="servicio_precio" name="precio" placeholder="0">
+                </div>
+                <div style="display:flex; align-items:flex-end;">
+                    <button class="btn btn-primary" style="width:100%;">Agregar servicio</button>
+                </div>
+            </form>
+
+            @if($servicios->isEmpty())
+                <p>No hay servicios configurados.</p>
+            @else
+                <div class="grid grid-2">
+                    @foreach($servicios as $servicio)
+                        <article style="border:1px solid #e2e8f0; border-radius:1rem; padding:1rem; background:#fff;">
+                            <form method="POST" action="{{ route('servicios.update', $servicio) }}" class="grid" style="gap:0.75rem;">
+                                @csrf
+                                @method('PATCH')
+                                <div>
+                                    <label>Nombre</label>
+                                    <input type="text" name="nombre" value="{{ $servicio->nombre }}" required>
+                                </div>
+                                <div>
+                                    <label>Duración (min)</label>
+                                    <input type="number" name="duracion_minutos" min="5" max="240" value="{{ $servicio->duracion_minutos }}" required>
+                                </div>
+                                <div>
+                                    <label>Precio</label>
+                                    <input type="number" step="0.01" name="precio" value="{{ $servicio->precio }}">
+                                </div>
+                                <div style="display:flex; gap:0.5rem;">
+                                    <button class="btn btn-primary" style="flex:1;">Guardar</button>
+                                    <button form="delete-servicio-{{ $servicio->id }}" class="btn" style="flex:1; background:#fee2e2; color:#991b1b;">Eliminar</button>
+                                </div>
+                            </form>
+                            <form id="delete-servicio-{{ $servicio->id }}" method="POST" action="{{ route('servicios.destroy', $servicio) }}">
+                                @csrf
+                                @method('DELETE')
+                            </form>
+                        </article>
+                    @endforeach
+                </div>
+            @endif
+        </section>
+    @endif
 @endsection
