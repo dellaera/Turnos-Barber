@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,6 +18,8 @@ class Turno extends Model
         'fecha',
         'hora',
         'estado',
+        'recordatorio_24_enviado',
+        'recordatorio_1_enviado',
     ];
 
     public function barberia()
@@ -37,5 +40,10 @@ class Turno extends Model
     public function cliente()
     {
         return $this->belongsTo(Cliente::class);
+    }
+
+    public function getFechaHoraAttribute(): Carbon
+    {
+        return Carbon::parse("{$this->fecha} {$this->hora}");
     }
 }
