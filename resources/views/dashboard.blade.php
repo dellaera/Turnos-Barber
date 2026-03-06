@@ -36,9 +36,12 @@
                         </article>
                     </div>
                     @if($proximoTurno)
+                        @php
+                            $proximoTurnoFecha = \Carbon\Carbon::parse($proximoTurno->fecha.' '.$proximoTurno->hora);
+                        @endphp
                         <div style="font-size:0.95rem;">
                             <p style="margin:0; color:#cbd5f5;">Próximo turno</p>
-                            <strong>{{ $proximoTurno->cliente->nombre }}</strong> · {{ \Carbon\Carbon::parse($proximoTurno->fecha)->translatedFormat('d M, H:i') }} con {{ $proximoTurno->barbero->nombre }}
+                            <strong>{{ $proximoTurno->cliente->nombre }}</strong> · {{ $proximoTurnoFecha->translatedFormat('d M, H:i') }} con {{ $proximoTurno->barbero->nombre }}
                         </div>
                     @endif
                 </div>
@@ -97,6 +100,9 @@
                             <p style="color:#475569; margin:0;">Un vistazo rápido a tu semana.</p>
                         </div>
                         @if($proximoTurno)
+                            @php
+                                $agendaTurnoFecha = \Carbon\Carbon::parse($proximoTurno->fecha.' '.$proximoTurno->hora);
+                            @endphp
                             <span class="badge">Próximo turno: {{ \Carbon\Carbon::parse($proximoTurno->fecha)->translatedFormat('d M') }} {{ \Carbon\Carbon::parse($proximoTurno->hora)->format('H:i') }}</span>
                         @endif
                     </div>
@@ -125,7 +131,7 @@
                                 <li>
                                     <div>
                                         <strong>{{ $proximoTurno->cliente->nombre }}</strong> — {{ $proximoTurno->servicio->nombre }}<br>
-                                        <span style="color:#94a3b8;">{{ \Carbon\Carbon::parse($proximoTurno->fecha)->translatedFormat('d M, H:i') }} con {{ $proximoTurno->barbero->nombre }}</span>
+                                        <span style="color:#94a3b8;">{{ $agendaTurnoFecha->translatedFormat('d M, H:i') }} con {{ $proximoTurno->barbero->nombre }}</span>
                                     </div>
                                 </li>
                             </ul>
@@ -141,8 +147,27 @@
                             <h2 style="margin:0;">Clientes</h2>
                             <p style="color:#475569; margin:0;">Contactos recurrentes y su actividad reciente.</p>
                         </div>
-                        <span class="badge">{{ $metrics['clientes_unicos'] }} clientes únicos</span>
+                        <div style="display:flex; gap:0.45rem; flex-wrap:wrap;">
+                            <span class="badge" style="background:rgba(37,99,235,0.15); color:#1d4ed8;">Total: {{ $clienteMetrics['total'] }}</span>
+                            <span class="badge" style="background:rgba(16,185,129,0.15); color:#047857;">Nuevos 30d: {{ $clienteMetrics['nuevos_30'] }}</span>
+                            <span class="badge" style="background:rgba(251,146,60,0.2); color:#c2410c;">Activos 30d: {{ $clienteMetrics['activos_30'] }}</span>
+                        </div>
                     </div>
+
+                    <form method="GET" action="{{ route('dashboard') }}" style="margin-bottom:1rem;">
+                        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+                            <div style="flex:2; min-width:220px;">
+                                <label for="clientes_buscar">Buscar</label>
+                                <input type="text" id="clientes_buscar" name="clientes_buscar" value="{{ $clientesBusqueda }}" placeholder="Nombre, teléfono o email">
+                            </div>
+                            <div style="display:flex; align-items:flex-end; gap:0.5rem;">
+                                <button class="btn btn-primary">Filtrar</button>
+                                @if($clientesBusqueda)
+                                    <a href="{{ route('dashboard') }}#panel-clientes" class="btn" style="background:#e2e8f0; color:#0f172a;">Limpiar</a>
+                                @endif
+                            </div>
+                        </div>
+                    </form>
 
                     <form method="POST" action="{{ route('clientes.store') }}" class="grid grid-2" style="gap:1rem; margin-bottom:1.25rem;">
                         @csrf
@@ -169,6 +194,14 @@
                         <div class="grid grid-2">
                             @foreach($clientes as $cliente)
                                 <article class="subcard" style="display:flex; flex-direction:column; gap:0.75rem;">
+                                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                                        <span class="pill" style="background:#e0f2fe; color:#0369a1;">Turnos completados: {{ $cliente->turnos_completados_count }}</span>
+                                        @if($cliente->ultimoTurno)
+                                            <span class="pill">Última visita {{ \Carbon\Carbon::parse($cliente->ultimoTurno->fecha)->translatedFormat('d M') }}</span>
+                                        @else
+                                            <span class="pill" style="background:#fee2e2; color:#b91c1c;">Sin visitas</span>
+                                        @endif
+                                    </div>
                                     <form method="POST" action="{{ route('clientes.update', $cliente) }}" class="grid" style="gap:0.75rem;">
                                         @csrf
                                         @method('PATCH')
@@ -184,13 +217,13 @@
                                             <label>Email</label>
                                             <input type="email" name="email" value="{{ $cliente->email }}">
                                         </div>
-                                        @if($cliente->ultimoTurno)
-                                            <p style="margin:0; color:#475569; font-size:0.9rem;">
+                                        <p style="margin:0; color:#475569; font-size:0.9rem;">
+                                            @if($cliente->ultimoTurno)
                                                 Último turno: {{ \Carbon\Carbon::parse($cliente->ultimoTurno->fecha)->translatedFormat('d M') }} · {{ \Carbon\Carbon::parse($cliente->ultimoTurno->hora)->format('H:i') }} con {{ $cliente->ultimoTurno->barbero->nombre }}
-                                            </p>
-                                        @else
-                                            <p style="margin:0; color:#94a3b8; font-size:0.9rem;">Sin turnos registrados aún.</p>
-                                        @endif
+                                            @else
+                                                Sin turnos registrados aún.
+                                            @endif
+                                        </p>
                                         <div style="display:flex; gap:0.5rem;">
                                             <button class="btn btn-primary" style="flex:1;">Guardar</button>
                                             <button form="delete-cliente-{{ $cliente->id }}" class="btn" style="flex:1; background:#fee2e2; color:#991b1b;">Eliminar</button>
@@ -203,6 +236,9 @@
                                 </article>
                             @endforeach
                         </div>
+                        <div style="margin-top:1rem;">
+                            {{ $clientes->withQueryString()->links() }}
+                        </div>
                     @endif
                 </section>
             </div>
@@ -212,9 +248,9 @@
                     <div class="section-heading">
                         <div>
                             <h2 style="margin:0;">Turnos recientes</h2>
-                            <p style="color:#475569; margin:0;">Últimos movimientos de tu agenda.</p>
+                            <p style="color:#475569; margin:0;">Últimos movimientos de tu agenda (solo reservas recientes).</p>
                         </div>
-                        <a href="{{ route('turnos.index') }}" class="btn" style="background:#e2e8f0; color:#0f172a;">Ver más</a>
+                        <a href="{{ route('turnos.index') }}" class="btn btn-primary" style="background:#f97316; border:none;">Ir a la agenda completa</a>
                     </div>
 
                     @if($turnos->isEmpty())

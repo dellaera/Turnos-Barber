@@ -13,7 +13,29 @@
 @endsection
 
 @section('content')
-    <section class="card">
+    <section class="card" style="display:flex; flex-direction:column; gap:1.5rem;">
+        <div>
+            <p style="margin:0 0 0.75rem; color:#475569; font-size:0.95rem;">Filtros rápidos</p>
+            <div style="display:flex; flex-wrap:wrap; gap:0.6rem;">
+                @php
+                    $vistas = [
+                        'todos' => 'Todos',
+                        'hoy' => 'Hoy',
+                        'programados' => 'Programados',
+                        'cancelados' => 'Cancelados',
+                    ];
+                @endphp
+                @foreach($vistas as $vistaKey => $label)
+                    <a href="{{ route('turnos.index', array_merge(request()->except('page'), ['vista' => $vistaKey])) }}"
+                       class="btn"
+                       style="{{ $vistaActual === $vistaKey ? 'background:#0f172a; color:#fff;' : 'background:#f1f5f9; color:#0f172a;' }}">
+                        {{ $label }}
+                        <span style="font-size:0.85rem; margin-left:0.35rem; opacity:0.8;">({{ $metricasTurnos[$vistaKey] ?? 0 }})</span>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+
         <form method="GET" class="grid grid-2" style="gap:1rem;">
             <div>
                 <label>Desde</label>
@@ -63,7 +85,24 @@
         </form>
     </section>
 
-    <section class="card">
+    <section class="card" style="display:flex; flex-direction:column; gap:1.5rem;">
+        <div class="grid grid-2">
+            <article class="subcard">
+                <p style="margin:0 0 0.4rem; color:#475569; font-size:0.9rem;">Estados activos</p>
+                <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+                    @foreach($resumenEstados as $estado => $total)
+                        <span class="pill" style="background:#e2e8f0; color:#0f172a;">
+                            {{ ucfirst($estado) }} · {{ $total }}
+                        </span>
+                    @endforeach
+                </div>
+            </article>
+            <article class="subcard">
+                <p style="margin:0 0 0.4rem; color:#475569; font-size:0.9rem;">Tip</p>
+                <p style="margin:0; color:#0f172a;">Usá los botones rápidos para confirmar, completar o cancelar sin abrir el turno.</p>
+            </article>
+        </div>
+
         @if($turnos->isEmpty())
             <p>No hay turnos con los criterios seleccionados.</p>
         @else
@@ -77,7 +116,7 @@
                             <th>Fecha</th>
                             <th>Hora</th>
                             <th>Estado</th>
-                            <th>Cambiar estado</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -97,7 +136,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <form method="POST" action="{{ route('turnos.actualizar-estado', $turno) }}" style="display:flex; gap:0.5rem; align-items:center;">
+                                    <form method="POST" action="{{ route('turnos.actualizar-estado', $turno) }}" style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.5rem;">
                                         @csrf
                                         @method('PATCH')
                                         <select name="estado" style="flex:1;">
@@ -109,6 +148,18 @@
                                         </select>
                                         <button class="btn btn-primary">Actualizar</button>
                                     </form>
+                                    <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+                                        @foreach(['programado' => 'Programar', 'completado' => 'Completar', 'cancelado' => 'Cancelar', 'ausente' => 'Marcar ausente'] as $estadoObjetivo => $label)
+                                            @if($turno->estado !== $estadoObjetivo)
+                                                <form method="POST" action="{{ route('turnos.actualizar-estado', $turno) }}">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <input type="hidden" name="estado" value="{{ $estadoObjetivo }}">
+                                                    <button class="btn" style="background:#f1f5f9; color:#0f172a; padding:0.35rem 0.9rem; font-size:0.9rem;">{{ $label }}</button>
+                                                </form>
+                                            @endif
+                                        @endforeach
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach

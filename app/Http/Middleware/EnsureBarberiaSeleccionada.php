@@ -13,12 +13,12 @@ class EnsureBarberiaSeleccionada
     {
         $user = Auth::user();
 
-        if ($user && $user->esAdmin() && ! $user->barberiaActiva()) {
-            return redirect()->route('dashboard')->with('status', 'Elegí una barbería para continuar.');
-        }
+        if ($user && ! $user->barberiaActiva()) {
+            $mensaje = $user->esAdmin()
+                ? 'Elegí una barbería para continuar.'
+                : 'Necesitás tener una barbería asignada para acceder a esta sección.';
 
-        if (! $user?->barberiaActiva()) {
-            abort(403);
+            return redirect()->route('dashboard')->with('error', $mensaje);
         }
 
         return $next($request);

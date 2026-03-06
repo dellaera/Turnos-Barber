@@ -18,10 +18,11 @@ class TurnoController extends Controller
 {
     public function index(Request $request)
     {
-        $barberia = Auth::user()->barberia;
+        $barberia = Auth::user()->barberiaActiva();
         abort_unless($barberia, 403);
 
         $filters = $request->only(['desde', 'hasta', 'estado', 'barbero_id', 'servicio_id']);
+        $vistaActual = $request->input('vista', 'todos');
 
         $query = $barberia->turnos()->with(['cliente', 'servicio', 'barbero'])->latest();
 
@@ -41,21 +42,50 @@ class TurnoController extends Controller
             $query->where('servicio_id', $filters['servicio_id']);
         }
 
+        if ($vistaActual === 'hoy') {
+            $query->whereDate('fecha', Carbon::today());
+        } elseif ($vistaActual === 'programados') {
+            $query->where('estado', 'programado');
+        } elseif ($vistaActual === 'cancelados') {
+            $query->where('estado', 'cancelado');
+        }
+
         $turnos = $query->paginate(10)->withQueryString();
         $barberos = $barberia->barberos()->orderBy('nombre')->get();
         $servicios = $barberia->servicios()->orderBy('nombre')->get();
-        $estados = ['reservado', 'confirmado', 'completado', 'cancelado', 'ausente'];
+        $estados = ['programado', 'completado', 'cancelado', 'ausente'];
 
-        return view('turnos.index', compact('turnos', 'barberos', 'servicios', 'estados', 'filters'));
+        $metricasTurnos = [
+            'todos' => $barberia->turnos()->count(),
+            'hoy' => $barberia->turnos()->whereDate('fecha', Carbon::today())->count(),
+            'programados' => $barberia->turnos()->where('estado', 'programado')->count(),
+            'cancelados' => $barberia->turnos()->where('estado', 'cancelado')->count(),
+        ];
+
+        $resumenEstados = $barberia->turnos()
+            ->select('estado', DB::raw('COUNT(*) as total'))
+            ->groupBy('estado')
+            ->pluck('total', 'estado');
+
+        return view('turnos.index', compact(
+            'turnos',
+            'barberos',
+            'servicios',
+            'estados',
+            'filters',
+            'vistaActual',
+            'metricasTurnos',
+            'resumenEstados'
+        ));
     }
 
     public function actualizarEstado(Request $request, Turno $turno): RedirectResponse
     {
-        $barberia = Auth::user()->barberia;
+        $barberia = Auth::user()->barberiaActiva();
         abort_unless($barberia && $turno->barberia_id === $barberia->id, 403);
 
         $data = $request->validate([
-            'estado' => ['required', 'in:reservado,confirmado,completado,cancelado,ausente'],
+            'estado' => ['required', 'in:programado,completado,cancelado,ausente'],
         ]);
 
         $turno->update(['estado' => $data['estado']]);
@@ -162,7 +192,7 @@ class TurnoController extends Controller
                 'cliente_id' => $cliente->id,
                 'fecha' => $fecha,
                 'hora' => $hora,
-                'estado' => 'reservado',
+                'estado' => 'programado',
             ]);
         });
 
